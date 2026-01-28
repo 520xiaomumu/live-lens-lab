@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Maximize2, Minimize2, Monitor, Smartphone, Tablet } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -15,9 +15,63 @@ const viewportSizes = {
   mobile: { width: '375px', label: '手机' },
 };
 
+// Inject React/ReactDOM/Babel for HTML files with React code
+const injectReactSupport = (html: string): string => {
+  // Check if the HTML contains React-related code
+  const hasReact = /React\.|ReactDOM\.|useState|useEffect|createElement|<[A-Z][a-zA-Z]*[\s/>]/.test(html);
+  const hasJSX = /<[A-Z][a-zA-Z]*[\s/>]|className=/.test(html);
+  
+  if (!hasReact && !hasJSX) {
+    return html;
+  }
+
+  const reactCDN = `
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  `;
+
+  // If HTML already has these scripts, don't add them again
+  if (html.includes('unpkg.com/react@') || html.includes('cdnjs.cloudflare.com/ajax/libs/react')) {
+    // Just ensure scripts are type="text/babel" if they contain JSX
+    return html.replace(/<script(?![^>]*type=["']text\/babel["'])([^>]*)>/gi, (match, attrs) => {
+      // Check if this script likely contains JSX
+      return match;
+    });
+  }
+
+  // Inject React CDN into head or at the beginning
+  let modifiedHtml = html;
+  
+  if (modifiedHtml.includes('<head>')) {
+    modifiedHtml = modifiedHtml.replace('<head>', `<head>${reactCDN}`);
+  } else if (modifiedHtml.includes('<html>')) {
+    modifiedHtml = modifiedHtml.replace('<html>', `<html><head>${reactCDN}</head>`);
+  } else {
+    modifiedHtml = `<!DOCTYPE html><html><head>${reactCDN}</head><body>${modifiedHtml}</body></html>`;
+  }
+
+  // Convert inline scripts to text/babel type for JSX transpilation
+  modifiedHtml = modifiedHtml.replace(
+    /<script(?![^>]*src=)(?![^>]*type=["']text\/babel["'])([^>]*)>([\s\S]*?)<\/script>/gi,
+    (match, attrs, content) => {
+      // Check if script content contains JSX or React code
+      if (/<[A-Z][a-zA-Z]*[\s/>]|className=|React\.|useState|useEffect/.test(content)) {
+        return `<script type="text/babel"${attrs}>${content}</script>`;
+      }
+      return match;
+    }
+  );
+
+  return modifiedHtml;
+};
+
 export function HTMLPreview({ content, fileName }: HTMLPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Process HTML content to support React code
+  const processedContent = useMemo(() => injectReactSupport(content), [content]);
 
   return (
     <div className={cn(
@@ -91,10 +145,10 @@ export function HTMLPreview({ content, fileName }: HTMLPreviewProps) {
           }}
         >
           <iframe
-            srcDoc={content}
+            srcDoc={processedContent}
             className="w-full h-full border-0"
             title="HTML Preview"
-            sandbox="allow-scripts"
+            sandbox="allow-scripts allow-same-origin"
           />
         </div>
       </div>
