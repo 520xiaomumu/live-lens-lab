@@ -5,6 +5,7 @@ import { HTMLPreview } from '@/components/HTMLPreview';
 import { DeployButton } from '@/components/DeployButton';
 import { DeployedLink } from '@/components/DeployedLink';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [htmlContent, setHtmlContent] = useState<string>('');
@@ -25,16 +26,37 @@ const Index = () => {
   };
 
   const handleDeploy = async () => {
+    if (!htmlContent || !fileName) {
+      toast.error('请先上传 HTML 文件');
+      return;
+    }
+
     setIsDeploying(true);
     
-    // Simulate deployment - needs backend
-    toast.info('部署功能需要连接后端服务');
-    
-    setTimeout(() => {
+    try {
+      const response = await supabase.functions.invoke('deploy', {
+        body: {
+          htmlContent,
+          fileName,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || '部署失败');
+      }
+
+      const { publicUrl, slug } = response.data;
+      
+      // Use the app's own route for viewing
+      const viewUrl = `${window.location.origin}/p/${slug}`;
+      setDeployedUrl(viewUrl);
+      toast.success('部署成功！');
+    } catch (error) {
+      console.error('Deploy error:', error);
+      toast.error(error instanceof Error ? error.message : '部署失败，请稍后重试');
+    } finally {
       setIsDeploying(false);
-      // Demo URL - actual deployment requires Lovable Cloud
-      // setDeployedUrl(`https://demo-${Date.now()}.pages.dev`);
-    }, 1500);
+    }
   };
 
   return (
