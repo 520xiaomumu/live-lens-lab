@@ -21,6 +21,7 @@ export type Database = {
           file_name: string
           file_path: string
           id: string
+          notes: string | null
           public_url: string
           slug: string
           status: string | null
@@ -31,6 +32,7 @@ export type Database = {
           file_name: string
           file_path: string
           id?: string
+          notes?: string | null
           public_url: string
           slug: string
           status?: string | null
@@ -41,6 +43,7 @@ export type Database = {
           file_name?: string
           file_path?: string
           id?: string
+          notes?: string | null
           public_url?: string
           slug?: string
           status?: string | null
