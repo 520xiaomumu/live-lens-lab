@@ -100,36 +100,12 @@ const ViewPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Floating toolbar */}
-      <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-card/90 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg">
-        <Link 
-          to="/" 
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          首页
-        </Link>
-        <div className="w-px h-4 bg-border" />
-        <a
-          href={`${window.location.origin}/p/${slug}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ExternalLink className="w-4 h-4" />
-          新窗口
-        </a>
-      </div>
-
-      {/* Full page iframe */}
-      <iframe
-        srcDoc={htmlContent}
-        className="w-full h-screen border-0"
-        title="Deployed Page"
-        sandbox="allow-scripts allow-same-origin"
-      />
-    </div>
+    <iframe
+      srcDoc={htmlContent}
+      className="w-full h-screen border-0"
+      title="Deployed Page"
+      sandbox="allow-scripts allow-same-origin"
+    />
   );
 };
 
