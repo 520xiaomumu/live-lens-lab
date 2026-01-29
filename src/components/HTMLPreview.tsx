@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Maximize2, Minimize2, Monitor, Smartphone, Tablet } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SourceCodeViewer } from './SourceCodeViewer';
 
 interface HTMLPreviewProps {
   content: string;
@@ -123,6 +124,8 @@ export function HTMLPreview({ content, fileName }: HTMLPreviewProps) {
               <Smartphone className="w-4 h-4" />
             </button>
           </div>
+          
+          <SourceCodeViewer content={content} fileName={fileName} />
           
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}

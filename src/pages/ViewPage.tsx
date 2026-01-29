@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ArrowLeft, ExternalLink } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
+import { SourceCodeViewer } from '@/components/SourceCodeViewer';
 
 const ViewPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -100,12 +101,23 @@ const ViewPage = () => {
   }
 
   return (
-    <iframe
-      srcDoc={htmlContent}
-      className="w-full h-screen border-0"
-      title="Deployed Page"
-      sandbox="allow-scripts allow-same-origin"
-    />
+    <div className="relative w-full h-screen">
+      <iframe
+        srcDoc={htmlContent}
+        className="w-full h-full border-0"
+        title="Deployed Page"
+        sandbox="allow-scripts allow-same-origin"
+      />
+      
+      {/* Floating source code button */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <SourceCodeViewer 
+          content={htmlContent} 
+          fileName={`${slug}.html`}
+          className="shadow-lg"
+        />
+      </div>
+    </div>
   );
 };
 
