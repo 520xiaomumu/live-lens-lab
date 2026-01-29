@@ -17,9 +17,9 @@ const CATEGORIES = [
 export function CategorySelect({ value, onChange }: CategorySelectProps) {
   return (
     <div className="flex items-center gap-2">
-      <Tag className="w-4 h-4 text-muted-foreground" />
+      <Tag className="w-4 h-4 text-foreground" />
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-32 h-9">
+        <SelectTrigger className="w-32 h-9 text-foreground border-foreground/30">
           <SelectValue placeholder="选择分类" />
         </SelectTrigger>
         <SelectContent>

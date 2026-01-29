@@ -6,6 +6,7 @@ import { DeployButton } from '@/components/DeployButton';
 import { DeployedLink } from '@/components/DeployedLink';
 import { DeploymentHistory } from '@/components/DeploymentHistory';
 import { CategorySelect } from '@/components/CategorySelect';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,6 +16,7 @@ const Index = () => {
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployedUrl, setDeployedUrl] = useState<string>('');
   const [category, setCategory] = useState<string>('default');
+  const [notes, setNotes] = useState<string>('');
   const [historyKey, setHistoryKey] = useState(0);
 
   const handleFileSelect = (content: string, name: string) => {
@@ -27,6 +29,7 @@ const Index = () => {
     setHtmlContent('');
     setFileName('');
     setDeployedUrl('');
+    setNotes('');
   };
 
   const handleDeploy = async () => {
@@ -43,6 +46,7 @@ const Index = () => {
           htmlContent,
           fileName,
           category,
+          notes: notes.trim() || null,
         },
       });
 
@@ -124,8 +128,16 @@ const Index = () => {
           {/* Deploy Section */}
           {htmlContent && (
             <section className="space-y-4">
-              <div className="flex items-center gap-4 flex-wrap">
-                <CategorySelect value={category} onChange={setCategory} />
+              <div className="space-y-3">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <CategorySelect value={category} onChange={setCategory} />
+                </div>
+                <Textarea
+                  placeholder="添加备注（可选）：描述这个页面的用途、版本信息等..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="resize-none h-20 text-foreground"
+                />
                 <DeployButton 
                   disabled={!htmlContent}
                   isDeploying={isDeploying}

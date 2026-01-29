@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { htmlContent, fileName, category = 'default' } = await req.json()
+    const { htmlContent, fileName, category = 'default', notes = null } = await req.json()
 
     if (!htmlContent || !fileName) {
       return new Response(
@@ -94,6 +94,7 @@ Deno.serve(async (req) => {
         public_url: publicUrl,
         category,
         status: 'active',
+        notes,
       })
 
     if (insertError) {
