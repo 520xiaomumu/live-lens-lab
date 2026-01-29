@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { Loader2, ArrowLeft, X } from 'lucide-react';
 import { SourceCodeViewer } from '@/components/SourceCodeViewer';
 
 const ViewPage = () => {
@@ -9,6 +9,7 @@ const ViewPage = () => {
   const [htmlContent, setHtmlContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [showSourceButton, setShowSourceButton] = useState(true);
 
   useEffect(() => {
     const fetchPage = async () => {
@@ -109,14 +110,23 @@ const ViewPage = () => {
         sandbox="allow-scripts allow-same-origin"
       />
       
-      {/* Floating source code button */}
-      <div className="fixed bottom-4 right-4 z-50">
-        <SourceCodeViewer 
-          content={htmlContent} 
-          fileName={`${slug}.html`}
-          className="shadow-lg"
-        />
-      </div>
+      {/* Floating source code button with close option */}
+      {showSourceButton && (
+        <div className="fixed bottom-4 right-4 z-50 flex items-center gap-2">
+          <SourceCodeViewer 
+            content={htmlContent} 
+            fileName={`${slug}.html`}
+            className="shadow-lg"
+          />
+          <button
+            onClick={() => setShowSourceButton(false)}
+            className="p-1.5 rounded-md bg-background/80 backdrop-blur border border-border shadow-lg text-muted-foreground hover:text-foreground transition-colors"
+            title="隐藏按钮"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

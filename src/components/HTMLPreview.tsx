@@ -125,7 +125,7 @@ export function HTMLPreview({ content, fileName }: HTMLPreviewProps) {
             </button>
           </div>
           
-          <SourceCodeViewer content={content} fileName={fileName} />
+          <SourceCodeViewer content={content} fileName={fileName} className="text-foreground" />
           
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
