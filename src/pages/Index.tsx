@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Code2, Zap } from 'lucide-react';
 import { FileUploader } from '@/components/FileUploader';
 import { HTMLPreview } from '@/components/HTMLPreview';
 import { DeployButton } from '@/components/DeployButton';
 import { DeployedLink } from '@/components/DeployedLink';
+import { DeploymentHistory } from '@/components/DeploymentHistory';
+import { CategorySelect } from '@/components/CategorySelect';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -12,6 +14,8 @@ const Index = () => {
   const [fileName, setFileName] = useState<string>('');
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployedUrl, setDeployedUrl] = useState<string>('');
+  const [category, setCategory] = useState<string>('default');
+  const [historyKey, setHistoryKey] = useState(0);
 
   const handleFileSelect = (content: string, name: string) => {
     setHtmlContent(content);
@@ -38,6 +42,7 @@ const Index = () => {
         body: {
           htmlContent,
           fileName,
+          category,
         },
       });
 
@@ -51,6 +56,8 @@ const Index = () => {
       const viewUrl = `${window.location.origin}/p/${slug}`;
       setDeployedUrl(viewUrl);
       toast.success('部署成功！');
+      // Refresh history
+      setHistoryKey(prev => prev + 1);
     } catch (error) {
       console.error('Deploy error:', error);
       toast.error(error instanceof Error ? error.message : '部署失败，请稍后重试');
@@ -117,15 +124,21 @@ const Index = () => {
           {/* Deploy Section */}
           {htmlContent && (
             <section className="space-y-4">
-              <DeployButton 
-                disabled={!htmlContent}
-                isDeploying={isDeploying}
-                onClick={handleDeploy}
-              />
+              <div className="flex items-center gap-4 flex-wrap">
+                <CategorySelect value={category} onChange={setCategory} />
+                <DeployButton 
+                  disabled={!htmlContent}
+                  isDeploying={isDeploying}
+                  onClick={handleDeploy}
+                />
+              </div>
               
               {deployedUrl && <DeployedLink url={deployedUrl} />}
             </section>
           )}
+
+          {/* Deployment History */}
+          <DeploymentHistory key={historyKey} />
 
           {/* Features */}
           {!htmlContent && (
