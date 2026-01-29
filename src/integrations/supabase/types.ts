@@ -16,28 +16,34 @@ export type Database = {
     Tables: {
       deployments: {
         Row: {
+          category: string | null
           created_at: string | null
           file_name: string
           file_path: string
           id: string
           public_url: string
           slug: string
+          status: string | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           file_name: string
           file_path: string
           id?: string
           public_url: string
           slug: string
+          status?: string | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           file_name?: string
           file_path?: string
           id?: string
           public_url?: string
           slug?: string
+          status?: string | null
         }
         Relationships: []
       }

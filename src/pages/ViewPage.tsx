@@ -38,6 +38,13 @@ const ViewPage = () => {
           return;
         }
 
+        // Check if page is unpublished
+        if (deployment.status === 'unpublished') {
+          setError('该页面已下架');
+          setLoading(false);
+          return;
+        }
+
         // Fetch HTML content from storage
         const { data, error: storageError } = await supabase.storage
           .from('html-pages')
