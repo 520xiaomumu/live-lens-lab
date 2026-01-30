@@ -15,7 +15,7 @@ const Index = () => {
   const [fileName, setFileName] = useState<string>('');
   const [isDeploying, setIsDeploying] = useState(false);
   const [deployedUrl, setDeployedUrl] = useState<string>('');
-  const [category, setCategory] = useState<string>('default');
+  const [category, setCategory] = useState<string>('test');
   const [notes, setNotes] = useState<string>('');
   const [historyKey, setHistoryKey] = useState(0);
 
