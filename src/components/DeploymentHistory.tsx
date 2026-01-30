@@ -26,15 +26,16 @@ interface Deployment {
   category: string | null;
   status: string | null;
   created_at: string | null;
+  notes: string | null;
 }
 
 const CATEGORIES = [
   { value: 'all', label: '全部分类' },
-  { value: 'default', label: '默认' },
-  { value: 'portfolio', label: '作品集' },
-  { value: 'landing', label: '落地页' },
-  { value: 'demo', label: '演示' },
   { value: 'test', label: '测试' },
+  { value: 'demo', label: '演示' },
+  { value: 'game', label: '游戏' },
+  { value: 'tool', label: '工具' },
+  { value: 'app', label: '应用' },
 ];
 
 export function DeploymentHistory() {
@@ -164,6 +165,11 @@ export function DeploymentHistory() {
                   <span>/{deployment.slug}</span>
                   <span>{formatDate(deployment.created_at)}</span>
                 </div>
+                {deployment.notes && (
+                  <p className="text-xs text-muted-foreground mt-1 truncate max-w-md">
+                    {deployment.notes}
+                  </p>
+                )}
               </div>
 
               <div className="flex items-center gap-1">
