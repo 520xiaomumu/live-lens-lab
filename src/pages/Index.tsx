@@ -56,8 +56,8 @@ const Index = () => {
 
       const { publicUrl, slug } = response.data;
       
-      // Use the app's own route for viewing
-      const viewUrl = `${window.location.origin}/p/${slug}`;
+      // Always use the published domain for viewing
+      const viewUrl = `https://live-lens-lab.lovable.app/p/${slug}`;
       setDeployedUrl(viewUrl);
       toast.success('部署成功！');
       // Refresh history
