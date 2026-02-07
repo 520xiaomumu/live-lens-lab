@@ -5,21 +5,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Convert filename to URL-safe slug
+// Convert filename to URL-safe slug (ASCII only for storage compatibility)
 function fileNameToSlug(fileName: string): string {
   // Remove .html or .htm extension
   let slug = fileName.replace(/\.(html|htm)$/i, '')
   
-  // Convert to lowercase and replace spaces/special chars with hyphens
+  // Convert to lowercase and replace non-ASCII chars with hyphens
+  // Note: Chinese/non-ASCII characters are not supported by Supabase Storage
   slug = slug
     .toLowerCase()
-    .replace(/[^a-z0-9\u4e00-\u9fa5-]/g, '-') // Keep alphanumeric, Chinese chars, and hyphens
+    .replace(/[^a-z0-9-]/g, '-') // Only keep ASCII alphanumeric and hyphens
     .replace(/-+/g, '-') // Replace multiple hyphens with single
     .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
   
-  // Ensure slug is not empty
+  // If slug is empty (e.g., all Chinese chars), generate a unique slug
   if (!slug) {
-    slug = 'page-' + Date.now()
+    // Use a short random string for readability
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    let randomPart = ''
+    for (let i = 0; i < 8; i++) {
+      randomPart += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    slug = 'page-' + randomPart
   }
   
   return slug
