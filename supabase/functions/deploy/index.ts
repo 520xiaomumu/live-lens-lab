@@ -5,14 +5,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Generate random slug
-function generateSlug(length = 6): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  let result = ''
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length))
+// Convert filename to URL-safe slug
+function fileNameToSlug(fileName: string): string {
+  // Remove .html or .htm extension
+  let slug = fileName.replace(/\.(html|htm)$/i, '')
+  
+  // Convert to lowercase and replace spaces/special chars with hyphens
+  slug = slug
+    .toLowerCase()
+    .replace(/[^a-z0-9\u4e00-\u9fa5-]/g, '-') // Keep alphanumeric, Chinese chars, and hyphens
+    .replace(/-+/g, '-') // Replace multiple hyphens with single
+    .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+  
+  // Ensure slug is not empty
+  if (!slug) {
+    slug = 'page-' + Date.now()
   }
-  return result
+  
+  return slug
 }
 
 Deno.serve(async (req) => {
@@ -37,28 +47,26 @@ Deno.serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Generate unique slug
-    let slug = generateSlug()
-    let attempts = 0
-    const maxAttempts = 10
+    // Generate slug from filename
+    const slug = fileNameToSlug(fileName)
 
-    // Check for slug collision
-    while (attempts < maxAttempts) {
-      const { data: existing } = await supabase
-        .from('deployments')
-        .select('slug')
-        .eq('slug', slug)
-        .maybeSingle()
+    // Check if slug already exists
+    const { data: existing } = await supabase
+      .from('deployments')
+      .select('slug, file_name, status')
+      .eq('slug', slug)
+      .eq('status', 'active')
+      .maybeSingle()
 
-      if (!existing) break
-      slug = generateSlug()
-      attempts++
-    }
-
-    if (attempts >= maxAttempts) {
+    if (existing) {
       return new Response(
-        JSON.stringify({ error: 'Failed to generate unique slug' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          error: 'SLUG_EXISTS',
+          message: `域名后缀 "${slug}" 已被使用（文件：${existing.file_name}）。请修改文件名后重试，或先下架原有部署。`,
+          existingSlug: slug,
+          existingFileName: existing.file_name
+        }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
