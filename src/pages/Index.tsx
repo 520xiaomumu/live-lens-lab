@@ -70,6 +70,16 @@ const Index = () => {
         },
       });
 
+      // Handle slug conflict (409)
+      if (response.data?.error === 'SLUG_EXISTS') {
+        toast.error(response.data.message, {
+          duration: 5000,
+          description: '提示：可以修改文件名或下架已有部署',
+        });
+        setIsDeploying(false);
+        return;
+      }
+
       if (response.error) {
         throw new Error(response.error.message || '部署失败');
       }
@@ -79,7 +89,7 @@ const Index = () => {
       // Always use the published domain for viewing
       const viewUrl = `https://live-lens-lab.lovable.app/p/${slug}`;
       setDeployedUrl(viewUrl);
-      toast.success('部署成功！');
+      toast.success(`部署成功！链接后缀：${slug}`);
       // Refresh history
       setHistoryKey(prev => prev + 1);
     } catch (error) {
