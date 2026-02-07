@@ -1,12 +1,14 @@
 import { useState, useCallback } from 'react';
-import { Code2, Zap } from 'lucide-react';
+import { Code2, Zap, Upload, FileCode } from 'lucide-react';
 import { FileUploader } from '@/components/FileUploader';
+import { CodeInput } from '@/components/CodeInput';
 import { HTMLPreview } from '@/components/HTMLPreview';
 import { DeployButton } from '@/components/DeployButton';
 import { DeployedLink } from '@/components/DeployedLink';
 import { DeploymentHistory } from '@/components/DeploymentHistory';
 import { CategorySelect } from '@/components/CategorySelect';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,11 +20,29 @@ const Index = () => {
   const [category, setCategory] = useState<string>('test');
   const [notes, setNotes] = useState<string>('');
   const [historyKey, setHistoryKey] = useState(0);
+  const [inputMode, setInputMode] = useState<'upload' | 'code'>('upload');
 
   const handleFileSelect = (content: string, name: string) => {
     setHtmlContent(content);
     setFileName(name);
     setDeployedUrl('');
+  };
+
+  const handleCodeSubmit = (content: string, name: string) => {
+    setHtmlContent(content);
+    setFileName(name);
+    setDeployedUrl('');
+    toast.success('代码导入成功！');
+  };
+
+  const handleContentChange = (newContent: string) => {
+    setHtmlContent(newContent);
+    toast.success('代码已更新！');
+  };
+
+  const handleRename = (newName: string) => {
+    setFileName(newName);
+    toast.success(`文件已重命名为 ${newName}`);
   };
 
   const handleClear = () => {
@@ -105,13 +125,40 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Upload Section */}
+          {/* Upload/Code Section */}
           <section className="space-y-4">
-            <FileUploader 
-              onFileSelect={handleFileSelect}
-              selectedFileName={fileName}
-              onClear={handleClear}
-            />
+            <Tabs value={inputMode} onValueChange={(v) => setInputMode(v as 'upload' | 'code')}>
+              <TabsList className="grid w-full grid-cols-2 max-w-md">
+                <TabsTrigger value="upload" className="gap-2">
+                  <Upload className="w-4 h-4" />
+                  上传文件
+                </TabsTrigger>
+                <TabsTrigger value="code" className="gap-2">
+                  <FileCode className="w-4 h-4" />
+                  输入代码
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="upload" className="mt-4">
+                <FileUploader 
+                  onFileSelect={handleFileSelect}
+                  selectedFileName={fileName}
+                  onClear={handleClear}
+                  onRename={handleRename}
+                />
+              </TabsContent>
+              <TabsContent value="code" className="mt-4">
+                {!htmlContent ? (
+                  <CodeInput onCodeSubmit={handleCodeSubmit} />
+                ) : (
+                  <FileUploader 
+                    onFileSelect={handleFileSelect}
+                    selectedFileName={fileName}
+                    onClear={handleClear}
+                    onRename={handleRename}
+                  />
+                )}
+              </TabsContent>
+            </Tabs>
           </section>
 
           {/* Preview Section */}
@@ -121,7 +168,12 @@ const Index = () => {
                 <span className="w-2 h-2 rounded-full bg-primary" />
                 预览
               </h3>
-              <HTMLPreview content={htmlContent} fileName={fileName} />
+              <HTMLPreview 
+                content={htmlContent} 
+                fileName={fileName}
+                editable={true}
+                onContentChange={handleContentChange}
+              />
             </section>
           )}
 
