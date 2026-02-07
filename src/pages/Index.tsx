@@ -70,9 +70,11 @@ const Index = () => {
         },
       });
 
-      // Handle slug conflict (409)
-      if (response.data?.error === 'SLUG_EXISTS') {
-        toast.error(response.data.message, {
+      // Handle slug conflict (409) - check both data and error contexts
+      const responseData = response.data || (response.error?.context ? JSON.parse(new TextDecoder().decode(response.error.context)) : null);
+      
+      if (responseData?.error === 'SLUG_EXISTS') {
+        toast.error(responseData.message, {
           duration: 5000,
           description: '提示：可以修改文件名或下架已有部署',
         });
@@ -80,7 +82,7 @@ const Index = () => {
         return;
       }
 
-      if (response.error) {
+      if (response.error && !responseData) {
         throw new Error(response.error.message || '部署失败');
       }
 
