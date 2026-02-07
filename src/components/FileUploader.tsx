@@ -1,15 +1,19 @@
 import { useState, useRef, DragEvent, ChangeEvent } from 'react';
-import { Upload, File, X } from 'lucide-react';
+import { Upload, File, X, Edit3, Check } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 interface FileUploaderProps {
   onFileSelect: (content: string, fileName: string) => void;
   selectedFileName?: string;
   onClear: () => void;
+  onRename?: (newName: string) => void;
 }
 
-export function FileUploader({ onFileSelect, selectedFileName, onClear }: FileUploaderProps) {
+export function FileUploader({ onFileSelect, selectedFileName, onClear, onRename }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState(selectedFileName || '');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
@@ -57,11 +61,54 @@ export function FileUploader({ onFileSelect, selectedFileName, onClear }: FileUp
     fileInputRef.current?.click();
   };
 
+  const handleRenameSubmit = () => {
+    let finalName = newName.trim() || 'index.html';
+    if (!finalName.endsWith('.html') && !finalName.endsWith('.htm')) {
+      finalName += '.html';
+    }
+    onRename?.(finalName);
+    setIsRenaming(false);
+  };
+
+  const startRenaming = () => {
+    setNewName(selectedFileName || '');
+    setIsRenaming(true);
+  };
+
   if (selectedFileName) {
     return (
       <div className="flex items-center gap-3 px-4 py-3 bg-accent/50 rounded-lg border border-primary/30">
         <File className="w-5 h-5 text-primary" />
-        <span className="font-mono text-sm text-foreground flex-1">{selectedFileName}</span>
+        {isRenaming ? (
+          <div className="flex items-center gap-2 flex-1">
+            <Input
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()}
+              className="h-8 text-sm text-foreground"
+              autoFocus
+            />
+            <button
+              onClick={handleRenameSubmit}
+              className="p-1 hover:bg-primary/20 rounded transition-colors"
+            >
+              <Check className="w-4 h-4 text-primary" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <span className="font-mono text-sm text-foreground flex-1">{selectedFileName}</span>
+            {onRename && (
+              <button
+                onClick={startRenaming}
+                className="p-1 hover:bg-primary/20 rounded transition-colors"
+                title="重命名"
+              >
+                <Edit3 className="w-4 h-4 text-muted-foreground hover:text-primary" />
+              </button>
+            )}
+          </>
+        )}
         <button
           onClick={onClear}
           className="p-1 hover:bg-destructive/20 rounded transition-colors"

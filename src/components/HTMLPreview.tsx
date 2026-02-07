@@ -67,7 +67,14 @@ const injectReactSupport = (html: string): string => {
   return modifiedHtml;
 };
 
-export function HTMLPreview({ content, fileName }: HTMLPreviewProps) {
+interface HTMLPreviewProps {
+  content: string;
+  fileName: string;
+  editable?: boolean;
+  onContentChange?: (newContent: string) => void;
+}
+
+export function HTMLPreview({ content, fileName, editable = false, onContentChange }: HTMLPreviewProps) {
   const [viewport, setViewport] = useState<ViewportSize>('desktop');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -125,7 +132,13 @@ export function HTMLPreview({ content, fileName }: HTMLPreviewProps) {
             </button>
           </div>
           
-          <SourceCodeViewer content={content} fileName={fileName} className="text-foreground" />
+          <SourceCodeViewer 
+            content={content} 
+            fileName={fileName} 
+            className="text-foreground"
+            editable={editable}
+            onContentChange={onContentChange}
+          />
           
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
