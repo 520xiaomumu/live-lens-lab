@@ -1,18 +1,28 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // Restrict CORS to specific domains
-const ALLOWED_ORIGINS = [
-  'https://live-lens-lab.lovable.app',
-  'https://id-preview--461fe5b9-9683-4ff4-98b7-a020ea79326b.lovable.app'
-]
+const PRIMARY_ORIGIN = 'https://live-lens-lab.lovable.app'
+const PREVIEW_PROJECT_ID = '461fe5b9-9683-4ff4-98b7-a020ea79326b'
+
+function isAllowedOrigin(origin: string) {
+  if (!origin) return false
+  if (origin === PRIMARY_ORIGIN) return true
+
+  // Allow this project's preview domains (both lovable.app and lovableproject.com)
+  if (!origin.includes(PREVIEW_PROJECT_ID)) return false
+  return origin.endsWith('.lovable.app') || origin.endsWith('.lovableproject.com')
+}
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get('Origin') || ''
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
-  
+  const allowedOrigin = isAllowedOrigin(origin) ? origin : PRIMARY_ORIGIN
+
   return {
     'Access-Control-Allow-Origin': allowedOrigin,
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+    Vary: 'Origin',
   }
 }
 
