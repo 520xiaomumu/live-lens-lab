@@ -1,9 +1,26 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Restrict CORS to specific domains
+const ALLOWED_ORIGINS = [
+  'https://live-lens-lab.lovable.app',
+  'https://id-preview--461fe5b9-9683-4ff4-98b7-a020ea79326b.lovable.app'
+]
+
+function getCorsHeaders(req: Request) {
+  const origin = req.headers.get('Origin') || ''
+  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0]
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
 }
+
+// Validation constants
+const MAX_HTML_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_FILENAME_LENGTH = 255
+const MAX_NOTES_LENGTH = 1000
+const ALLOWED_CATEGORIES = ['default', 'test', 'demo', 'game', 'tool', 'app']
 
 // Convert filename to URL-safe slug (ASCII only for storage compatibility)
 function fileNameToSlug(fileName: string): string {
@@ -33,6 +50,8 @@ function fileNameToSlug(fileName: string): string {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -41,9 +60,58 @@ Deno.serve(async (req) => {
   try {
     const { htmlContent, fileName, category = 'default', notes = null } = await req.json()
 
+    // Validate required fields exist
     if (!htmlContent || !fileName) {
       return new Response(
         JSON.stringify({ error: 'Missing htmlContent or fileName' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate HTML content size
+    if (typeof htmlContent !== 'string' || htmlContent.length > MAX_HTML_SIZE) {
+      return new Response(
+        JSON.stringify({ error: 'HTML content exceeds maximum size of 5MB' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate fileName format and length
+    if (typeof fileName !== 'string' || fileName.length > MAX_FILENAME_LENGTH) {
+      return new Response(
+        JSON.stringify({ error: `File name exceeds maximum length of ${MAX_FILENAME_LENGTH} characters` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate fileName has valid extension
+    if (!/\.(html|htm)$/i.test(fileName)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid file name. Must have .html or .htm extension' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate category
+    if (category && !ALLOWED_CATEGORIES.includes(category)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid category' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Validate notes length
+    if (notes && (typeof notes !== 'string' || notes.length > MAX_NOTES_LENGTH)) {
+      return new Response(
+        JSON.stringify({ error: `Notes exceed maximum length of ${MAX_NOTES_LENGTH} characters` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Basic HTML validation - ensure it contains some HTML-like content
+    if (!/<[a-z][\s\S]*>/i.test(htmlContent)) {
+      return new Response(
+        JSON.stringify({ error: 'Content does not appear to be valid HTML' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -133,9 +201,9 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Deploy error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const corsHeaders = getCorsHeaders(req)
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: errorMessage }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }

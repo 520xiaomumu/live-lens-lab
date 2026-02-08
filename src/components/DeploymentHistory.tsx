@@ -75,18 +75,22 @@ export function DeploymentHistory() {
 
   const handleUnpublish = async (deployment: Deployment) => {
     try {
-      const { error } = await supabase
-        .from('deployments')
-        .update({ status: 'unpublished' })
-        .eq('id', deployment.id);
+      const response = await supabase.functions.invoke('unpublish', {
+        body: { deploymentId: deployment.id },
+      });
 
-      if (error) throw error;
+      if (response.error) {
+        const errorData = response.error?.context 
+          ? JSON.parse(new TextDecoder().decode(response.error.context)) 
+          : null;
+        throw new Error(errorData?.error || response.error.message || '下架失败');
+      }
 
       toast.success('页面已下架');
       fetchDeployments();
     } catch (error) {
       console.error('Error unpublishing:', error);
-      toast.error('下架失败');
+      toast.error(error instanceof Error ? error.message : '下架失败');
     }
   };
 
