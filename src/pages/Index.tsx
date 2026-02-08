@@ -96,8 +96,8 @@ const Index = () => {
         return;
       }
 
-      if (response.error && !responseData) {
-        throw new Error(response.error.message || '部署失败');
+      if (response.error || !response.data) {
+        throw new Error(responseData?.message || response.error?.message || '部署失败');
       }
 
       const { publicUrl, slug } = response.data;
