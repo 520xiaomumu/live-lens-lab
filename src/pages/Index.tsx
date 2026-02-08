@@ -70,8 +70,22 @@ const Index = () => {
         },
       });
 
-      // Handle slug conflict (409) - check both data and error contexts
-      const responseData = response.data || (response.error?.context ? JSON.parse(new TextDecoder().decode(response.error.context)) : null);
+      // Handle errors - parse error context safely
+      let errorData = null;
+      if (response.error?.context) {
+        try {
+          // context could be ArrayBuffer or other types
+          if (response.error.context instanceof ArrayBuffer) {
+            errorData = JSON.parse(new TextDecoder().decode(response.error.context));
+          } else if (typeof response.error.context === 'object') {
+            errorData = response.error.context;
+          }
+        } catch (e) {
+          console.error('Failed to parse error context:', e);
+        }
+      }
+      
+      const responseData = response.data || errorData;
       
       if (responseData?.error === 'SLUG_EXISTS') {
         toast.error(responseData.message, {
