@@ -80,10 +80,30 @@ export function DeploymentHistory() {
       });
 
       if (response.error) {
-        const errorData = response.error?.context 
-          ? JSON.parse(new TextDecoder().decode(response.error.context)) 
-          : null;
-        throw new Error(errorData?.error || response.error.message || '下架失败');
+        let errorData: any = null;
+        const ctx: any = response.error.context;
+
+        if (ctx) {
+          try {
+            if (ctx instanceof ArrayBuffer) {
+              errorData = JSON.parse(new TextDecoder().decode(ctx));
+            } else if (ctx instanceof Uint8Array) {
+              errorData = JSON.parse(new TextDecoder().decode(ctx));
+            } else if (typeof ctx === 'string') {
+              // Sometimes context is already a string
+              errorData = JSON.parse(ctx);
+            } else if (typeof ctx === 'object') {
+              // supabase-js may already give us a parsed object
+              errorData = ctx;
+            }
+          } catch (e) {
+            console.warn('Failed to parse function error context:', e);
+          }
+        }
+
+        const message =
+          errorData?.error || errorData?.message || response.error.message || '下架失败';
+        throw new Error(message);
       }
 
       toast.success('页面已下架');
