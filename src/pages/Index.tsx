@@ -126,7 +126,7 @@ const Index = () => {
               <Code2 className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">HTMLDrop</h1>
+              <h1 className="text-xl font-bold text-foreground">HTML.fun</h1>
               <p className="text-xs text-muted-foreground">预览 & 部署 HTML</p>
             </div>
           </div>
